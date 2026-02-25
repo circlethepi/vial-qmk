@@ -18,17 +18,22 @@
 #define AUDIO_VOICES
 #ifdef AUDIO_ENABLE
 #define MNZK_START_SONG \
-    /* Measure 1 - melody with bass */ \
-    Q__NOTE(_G4), Q__NOTE(_C3), \
-    Q__NOTE(_A4), Q__NOTE(_C3), \
-    Q__NOTE(_B4), Q__NOTE(_G3), \
-    Q__NOTE(_B4), Q__NOTE(_G3), \
-    /* Measure 2 */ \
-    Q__NOTE(_D5), Q__NOTE(_G3), \
-    Q__NOTE(_C5), Q__NOTE(_C3), \
-    H__NOTE(_B4), H__NOTE(_G3), \
-    /* Measure 3 - ending chord */ \
-    W__NOTE(_G4), W__NOTE(_D4), W__NOTE(_G3)
+    /* Measure 1 - quirky melody with bass */ \
+    E__NOTE(_C5),  E__NOTE(_C3), \
+    E__NOTE(_FS5), E__NOTE(_FS2), \
+    Q__NOTE(_D5),  Q__NOTE(_BF2), \
+    \
+    E__NOTE(_BF4), E__NOTE(_E3), \
+    E__NOTE(_G5),  E__NOTE(_C3), \
+    Q__NOTE(_E4),  Q__NOTE(_GS2), \
+    \
+    S__NOTE(_A5),  S__NOTE(_F2), \
+    S__NOTE(_C4),  S__NOTE(_F2), \
+    S__NOTE(_F5),  S__NOTE(_CS3), \
+    S__NOTE(_GS4), S__NOTE(_CS3), \
+     \
+    Q__NOTE(_DS5), Q__NOTE(_A2), \
+    H__NOTE(_B4),  H__NOTE(_E3)
 #endif
 #define STARTUP_SONG SONG(MNZK_START_SONG)
 
