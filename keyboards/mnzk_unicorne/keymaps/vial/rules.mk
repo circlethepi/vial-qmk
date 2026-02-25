@@ -1,0 +1,5 @@
+VIA_ENABLE = yes
+VIAL_ENABLE = yes
+OLED_ENABLE = yes
+VIALRGB_ENABLE = yes
+AUDIO_ENABLE = yes
