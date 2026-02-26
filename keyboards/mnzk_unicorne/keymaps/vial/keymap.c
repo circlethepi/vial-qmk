@@ -8,39 +8,41 @@
 #include "rgb-utils.c"
 #endif
 
-// TAP DANCE DEFINITIONS
-typedef enum {
-    TD_NONE,
-    TD_UNKNOWN,
-    TD_SINGLE_TAP,
-    TD_SINGLE_HOLD,
-    TD_DOUBLE_TAP,
-    TD_DOUBLE_HOLD,
-    TD_DOUBLE_SINGLE_TAP, // Send two single taps
-    TD_TRIPLE_TAP,
-    TD_TRIPLE_HOLD
-} td_state_t;
-
-typedef struct {
-    bool is_press_action;
-    td_state_t state;
-} td_tap_t;
-
-// Tap dance enums
+// Tap dance enums - purely for me to remember which does which
 enum {
-    V_NUM_LAYER,
-    NAV_LAYER,
+    V_NUM, // v normally; double tap: TG(1); tap+hold: MO(1)
+    NAV, // tap: TG(2); hold: MO(2);
 };
 
-td_state_t cur_dance(tap_dance_state_t *state);
 
-// Tap dace info: Put it here so it can be used in any keymap
-void v_finished(tap_dance_state_t *state, void *user_data);
-void v_reset(tap_dance_state_t *state, void *user_data);
+/*===========================================================================*/
+// ACTUAL KEYMAPPING (from json2c)
+/*===========================================================================*/
 
-void nav_finished(tap_dance_state_t *state, void *user_data);
-void nav_reset(tap_dance_state_t *state, void *user_data);
+const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
+    [0] = LAYOUT_split_3x6_3(\
+      KC_TAB,     KC_Q,   KC_W,   KC_E,   KC_R,   KC_T,           KC_Y,   KC_U,   KC_I,   KC_O,     KC_SCLN,  KC_BSPC, \
+      KC_ESCAPE,  KC_A,   KC_S,   KC_D,   KC_F,   KC_G,           KC_H,   KC_J,   KC_K,   KC_L,     KC_P,     KC_QUOTE, \
+      KC_LCTL,    KC_Z,   KC_X,   KC_C,   TD(V_NUM), KC_NO,       KC_B,   KC_N,   KC_M,   KC_COMMA, KC_DOT,   KC_SLASH, \
+                                  TD(NAV), KC_LSFT, KC_LGUI,        KC_ENTER, KC_SPACE, KC_RALT\
+      ),
+    [1] = LAYOUT_split_3x6_3(\
+      _______,  LSFT(KC_COMMA), LSFT(KC_DOT), _______,  _______,  _______,      KC_KP_SLASH,  KC_7,  KC_8,  KC_9,   KC_MINUS,   _______, \
+      TG(1),    LSFT(KC_9),     LSFT(KC_0),   KC_LBRC,  KC_RBRC,  KC_BSLS,      KC_KP_COMMA,  KC_4,  KC_5,  KC_6,   KC_EQUAL,   _______, \
+      _______,  KC_UNDO,        KC_CUT,       KC_COPY,  KC_PSTE,  _______,      KC_KP_DOT,    KC_1,  KC_2,  KC_3,   _______,    _______, \
+                                              _______,  _______,  _______,      _______,      _______, KC_KP_0\
+      ),
+    [2] = LAYOUT_split_3x6_3(\
+      _______,  _______,  _______,  MS_UP,    _______,  _______,        _______,  _______,  KC_UP,    _______,  _______,  _______,  \
+      TG(2),    _______,  MS_LEFT,  MS_DOWN,  MS_RGHT,  MS_WHLD,        _______,  KC_LEFT,  KC_DOWN,  KC_RIGHT, _______, _______, \
+      KC_LCTL,  _______,  _______,  _______,  _______,  MS_WHLU,        _______,  _______,  _______,  _______,  _______, _______, \
+                                    _______,  MS_BTN1,  MS_BTN2,        _______,  _______,  _______ \
+      ),
+    [3] = LAYOUT_split_3x6_3(QK_BOOT, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, QK_CLEAR_EEPROM, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______)
+};
 
+/*===========================================================================*/
+// OLED 
 /*===========================================================================*/
 
 #ifdef OLED_ENABLE
@@ -61,6 +63,8 @@ bool oled_task_user(void) {
 
 #endif
 
+/*===========================================================================*/
+// RGB MATRIX
 /*===========================================================================*/
 
 #ifdef RGB_MATRIX_ENABLE
@@ -85,90 +89,3 @@ bool rgb_matrix_indicators_advanced_user(uint8_t led_min, uint8_t led_max) {
 
 #endif
 
-/*===========================================================================*/
-
-td_state_t cur_dance(tap_dance_state_t *state) {
-    if (state->count == 1) {
-        if (state->interrupted || !state->pressed) return TD_SINGLE_TAP;
-        // Key has not been interrupted, but the key is still held. Means you want to send a 'HOLD'.
-        else return TD_SINGLE_HOLD;
-    } else if (state->count == 2) {
-        // TD_DOUBLE_SINGLE_TAP is to distinguish between typing "pepper", and actually wanting a double tap
-        // action when hitting 'pp'. Suggested use case for this return value is when you want to send two
-        // keystrokes of the key, and not the 'double tap' action/macro.
-        if (state->interrupted) return TD_DOUBLE_SINGLE_TAP;
-        else if (state->pressed) return TD_DOUBLE_HOLD;
-        else return TD_DOUBLE_TAP;
-    }
-
-    // Assumes no one is trying to type the same letter three times (at least not quickly).
-    // If your tap dance key is 'KC_W', and you want to type "www." quickly - then you will need to add
-    // an exception here to return a 'TD_TRIPLE_SINGLE_TAP', and define that enum just like 'TD_DOUBLE_SINGLE_TAP'
-    if (state->count == 3) {
-        if (state->interrupted || !state->pressed) return TD_TRIPLE_TAP;
-        else return TD_TRIPLE_HOLD;
-    } else return TD_UNKNOWN;
-}
-
-// V tap dance
-// acts like V normally; on double tap, toggle layer 1. On tap+hold, MO(1)
-static td_tap_t v_tap_state = {
-    .is_press_action = true,
-    .state = TD_NONE
-};
-
-void v_finished(tap_dance_state_t *state, void *user_data) {
-    v_tap_state.state = cur_dance(state);  
-    switch (v_tap_state.state) {            
-        case TD_SINGLE_TAP: register_code(KC_V); break;
-        case TD_SINGLE_HOLD: register_code(KC_V); break;
-        case TD_DOUBLE_TAP: layer_invert(1); break; 
-        case TD_DOUBLE_HOLD: layer_on(1); break;     
-        case TD_DOUBLE_SINGLE_TAP: tap_code(KC_V); register_code(KC_V); break;
-        default: break;
-    }
-}
-
-void v_reset(tap_dance_state_t *state, void *user_data) {
-    switch (v_tap_state.state) { 
-        case TD_SINGLE_TAP: unregister_code(KC_V); break;
-        case TD_SINGLE_HOLD: unregister_code(KC_V); break;
-        case TD_DOUBLE_TAP: break; 
-        case TD_DOUBLE_HOLD: layer_off(1); break; 
-        case TD_DOUBLE_SINGLE_TAP: unregister_code(KC_V); break;
-        default: break;
-    }
-    v_tap_state.state = TD_NONE; 
-}
-
-// NAV tap dance
-// Toggle layer 2 (nav) on tap; MO(2) on hold
-static td_tap_t nav_tap_state = {
-    .is_press_action = true,
-    .state = TD_NONE
-};
-
-// NAV tap dance implementation
-void nav_finished(tap_dance_state_t *state, void *user_data) {
-    nav_tap_state.state = cur_dance(state);
-    switch (nav_tap_state.state) {
-        case TD_SINGLE_TAP: layer_invert(2); break;
-        case TD_SINGLE_HOLD: layer_on(2); break;
-        default: break;
-    }
-}
-
-void nav_reset(tap_dance_state_t *state, void *user_data) {
-    switch (nav_tap_state.state) {
-        case TD_SINGLE_HOLD: layer_off(2); break;
-        default: break;
-    }
-    nav_tap_state.state = TD_NONE;
-}
-
-
-// Tap dance settings
-// tap_dance_action_t tap_dance_actions[] = {
-//     [V_NUM_LAYER] = ACTION_TAP_DANCE_FN_ADVANCED(NULL, v_finished, v_reset),
-//     [NAV_LAYER] = ACTION_TAP_DANCE_FN_ADVANCED(NULL, nav_finished, nav_reset)
-// };
