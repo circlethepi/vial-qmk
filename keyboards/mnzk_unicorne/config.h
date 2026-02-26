@@ -17,23 +17,10 @@
 #define AUDIO_ENABLE_TONE_MULTIPLEXING
 #define AUDIO_VOICES
 #ifdef AUDIO_ENABLE
-#define MNZK_START_SONG \
-    /* Measure 1 - quirky melody with bass */ \
-    E__NOTE(_C5),  E__NOTE(_C3), \
-    E__NOTE(_FS5), E__NOTE(_FS2), \
-    Q__NOTE(_D5),  Q__NOTE(_BF2), \
-    \
-    E__NOTE(_BF4), E__NOTE(_E3), \
-    E__NOTE(_G5),  E__NOTE(_C3), \
-    Q__NOTE(_E4),  Q__NOTE(_GS2), \
-    \
-    S__NOTE(_A5),  S__NOTE(_F2), \
-    S__NOTE(_C4),  S__NOTE(_F2), \
-    S__NOTE(_F5),  S__NOTE(_CS3), \
-    S__NOTE(_GS4), S__NOTE(_CS3), \
-     \
-    Q__NOTE(_DS5), Q__NOTE(_A2), \
-    H__NOTE(_B4),  H__NOTE(_E3)
+#   define MNZK_START_SONG \
+        Q__NOTE(_DS5), Q__NOTE(_GS4), H__NOTE(_FS4), \
+        E__NOTE(_DS4), E__NOTE(_G4), E__NOTE(_AS4), Q__NOTE(_C5), \
+        Q__NOTE(_D5), Q__NOTE(_DS5), H__NOTE(_G5)
 #endif
 #define STARTUP_SONG SONG(MNZK_START_SONG)
 
@@ -41,3 +28,12 @@
 #define ANALOG_JOYSTICK_X_AXIS_PIN GP27
 #define POINTING_DEVICE_INVERT_Y
 #define POINTING_DEVICE_INVERT_X
+
+// Mouse 
+#define MK_KINETIC_SPEED
+#define MOUSEKEY_MOVE_DELTA         4  // default 16
+#define MOUSEKEY_INITIAL_SPEED      100  // default 100
+#define MOUSEKEY_BASE_SPEED         2500 // dfault 5000
+
+// Layer Toggling
+#define TAPPING_TOGGLE 2
